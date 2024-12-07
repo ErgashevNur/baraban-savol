@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Omad Shousi</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      }
+
+      .container {
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+
+      .wheel {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 10px solid #f76f72;
+        background: #fff;
+        overflow: hidden;
+        transform: rotate(0deg);
+        transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        margin: 0 auto;
+      }
+
+      .wheel-segment {
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        background: #ddd;
+        transform-origin: 100% 100%;
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+        color: #fff;
+      }
+
+      .input-section {
+        margin: 20px 0;
+      }
+
+      #questionInput {
+        padding: 10px;
+        width: calc(100% - 24px);
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+
+      #questionInput:focus {
+        border-color: #f76f72;
+      }
+
+      .button {
+        margin: 10px;
+        padding: 10px 20px;
+        background: #f76f72;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+
+      .button:hover {
+        background: #ff4430;
+      }
+
+      #result {
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #f76f72;
+      }
+
+      /* RESPONSIVE DESIGN */
+      @media (max-width: 600px) {
+        .wheel {
+          width: 250px;
+          height: 250px;
+        }
+
+        .wheel-segment {
+          font-size: 10px;
+        }
+
+        #questionInput {
+          font-size: 14px;
+        }
+
+        .button {
+          padding: 8px 16px;
+          font-size: 14px;
+        }
+
+        #result {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 375px) {
+        .container {
+          margin-left: 20px;
+          margin-right: 20px;
+        }
+        .wheel {
+          width: 200px;
+          height: 200px;
+        }
+
+        .wheel-segment {
+          font-size: 9px;
+        }
+
+        #questionInput {
+          font-size: 12px;
+        }
+
+        .button {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+
+        #result {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Omad Shousi</h1>
+      <div class="input-section">
+        <input
+          type="text"
+          id="questionInput"
+          placeholder="Savolingizni kiriting"
+        />
+        <button class="button" onclick="addQuestion()">Qo'shish</button>
+      </div>
+      <div id="wheel" class="wheel"></div>
+      <button class="button" onclick="spinWheel()">Start</button>
+      <button class="button" onclick="clearQuestions()">
+        Barchasini o'chirish
+      </button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const wheel = document.getElementById("wheel");
+      const result = document.getElementById("result");
+
+      // LocalStorage'dan savollarni olish
+      let questions = JSON.parse(localStorage.getItem("questions")) || [];
+
+      // Barabanni yangilash
+      function updateWheel() {
+        wheel.innerHTML = "";
+        const totalSegments = questions.length;
+        const anglePerSegment = 360 / totalSegments;
+
+        questions.forEach((question, index) => {
+          const segment = document.createElement("div");
+          segment.className = "wheel-segment";
+          segment.style.transform = `rotate(${index * anglePerSegment}deg)`;
+          segment.style.background = `hsl(${index * 45}, 70%, 50%)`;
+          segment.style.clipPath = `polygon(0 0, 100% 0, 100% 100%)`;
+          segment.innerHTML = `<span>${question}</span>`;
+          wheel.appendChild(segment);
+        });
+      }
+
+      // Savollarni qo'shish
+      function addQuestion() {
+        const input = document.getElementById("questionInput");
+        const question = input.value.trim();
+        if (question) {
+          questions.push(question);
+          localStorage.setItem("questions", JSON.stringify(questions));
+          updateWheel();
+          input.value = "";
+        } else {
+          alert("Iltimos, savol kiriting!");
+        }
+      }
+
+      // Barabanni aylantirish
+      function spinWheel() {
+        if (questions.length === 0) {
+          alert("Savollar yo'q! Avval savollarni qo'shing.");
+          return;
+        }
+
+        const randomDegree = Math.floor(Math.random() * 360) + 360 * 3; // Kamida 3 marta aylanadi
+        const selectedSegment =
+          Math.floor((360 - (randomDegree % 360)) / (360 / questions.length)) %
+          questions.length;
+
+        wheel.style.transform = `rotate(${randomDegree}deg)`;
+
+        setTimeout(() => {
+          result.textContent = `Tanlangan: ${questions[selectedSegment]}`;
+        }, 4000); // Animatsiya tugashini kutish
+      }
+
+      // Barcha savollarni o'chirish
+      function clearQuestions() {
+        questions = [];
+        localStorage.removeItem("questions");
+        updateWheel();
+        result.textContent = "Savollar o'chirildi!";
+      }
+
+      // Barabanni yangilash dastlab
+      updateWheel();
+    </script>
+  </body>
+</html>
